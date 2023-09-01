@@ -44,7 +44,7 @@ func fetchPullRequests(token string) ([]PullRequest, error) {
 }
 
 func pullRequestHandler(w http.ResponseWriter, r *http.Request) {
-	token := "YOUR_GITHUB_ACCESS_TOKEN"
+	token := "GITHUB_ACCESS_TOKEN"
 	pullRequests, err := fetchPullRequests(token)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
