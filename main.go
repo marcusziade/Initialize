@@ -14,6 +14,12 @@ type PullRequest struct {
 	State string `json:"state"`
 }
 
+func main() {
+	http.HandleFunc("/pullrequests", pullRequestHandler)
+	fmt.Println("Server started at :8080")
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
 func fetchPullRequests(token string) ([]PullRequest, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", "https://api.github.com/user/pulls", nil)
@@ -53,10 +59,4 @@ func pullRequestHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(pullRequests)
-}
-
-func main() {
-	http.HandleFunc("/pullrequests", pullRequestHandler)
-	fmt.Println("Server started at :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
 }
