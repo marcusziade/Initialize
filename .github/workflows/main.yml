@@ -26,9 +26,6 @@ jobs:
       with:
         go-version: 1.21
 
-    - name: Initialize Go Module
-      run: go mod init pr_check
-
     - name: Download Dependencies
       run: go get github.com/jdkato/prose/v2
 
