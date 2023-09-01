@@ -20,8 +20,14 @@ FROM alpine:latest
 # Copy the compiled Go binary into this lighter image
 COPY --from=builder /out/main /app/main
 
+# Copy the entrypoint script into the image
+COPY entrypoint.sh /entrypoint.sh
+
+# Make the script executable
+RUN chmod +x /entrypoint.sh
+
 # Make the port available to the world outside this container
 EXPOSE 8080
 
-# Run the binary when the container starts
-CMD ["/app/main"]
+# Set the entry point of the container
+ENTRYPOINT ["/entrypoint.sh"]
