@@ -2,7 +2,7 @@ package endpoints_test
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 
@@ -19,7 +19,7 @@ func (m *MockClient) Do(req *http.Request) (*http.Response, error) {
 	return &http.Response{
 		Status:     "200 OK",
 		StatusCode: 200,
-		Body:       ioutil.NopCloser(bytes.NewBufferString(jsonResponse)),
+		Body:       io.NopCloser(bytes.NewBufferString(jsonResponse)),
 	}, nil
 }
 
