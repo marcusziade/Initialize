@@ -1,62 +1,57 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"io"
 	"log"
 	"net/http"
+	"os"
+
+	"github.com/gin-gonic/gin"
+	"github.com/marcusziade/github-api/endpoints"
 )
 
-type PullRequest struct {
-	ID    int    `json:"id"`
-	Title string `json:"title"`
-	State string `json:"state"`
-}
-
 func main() {
-	http.HandleFunc("/pullrequests", pullRequestHandler)
-	fmt.Println("Server started at :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	token := os.Getenv("GITHUB_TOKEN")
+	if token == "" {
+		log.Fatal("GitHub token must be set in environment variable GITHUB_TOKEN")
+	}
+
+	r := gin.Default()
+
+	r.GET("/github_user/:username", func(c *gin.Context) {
+		username := c.Param("username")
+		user, err := endpoints.GetUser(username, token)
+		handleUserRequest(c, user, err)
+	})
+
+	r.GET("/user", func(c *gin.Context) {
+		user, err := endpoints.GetAuthenticatedUser(token)
+		handleUserRequest(c, user, err)
+	})
+
+	r.PATCH("/user", func(c *gin.Context) {
+		var updatedFields map[string]interface{}
+		if err := c.ShouldBindJSON(&updatedFields); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		user, err := endpoints.UpdateAuthenticatedUser(token, updatedFields)
+		handleUserRequest(c, user, err)
+	})
+
+	if err := r.Run(":8080"); err != nil {
+		log.Fatalf("Could not run server: %s", err.Error())
+	}
 }
 
-func fetchPullRequests(token string) ([]PullRequest, error) {
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", "https://api.github.com/user/pulls", nil)
+func handleUserRequest(c *gin.Context, user interface{}, err error) {
 	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
-	req.Header.Set("Accept", "application/vnd.github.v3+json")
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	var pullRequests []PullRequest
-	if err := json.Unmarshal(body, &pullRequests); err != nil {
-		return nil, err
-	}
-
-	return pullRequests, nil
-}
-
-func pullRequestHandler(w http.ResponseWriter, r *http.Request) {
-	token := "GITHUB_ACCESS_TOKEN"
-	pullRequests, err := fetchPullRequests(token)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	// Disabled during debugging.
+	// c.JSON(http.StatusOK, user)
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(pullRequests)
+	// Pretty-printed JSON during debugging.
+	c.Header("Content-Type", "application/json")
+	c.String(http.StatusOK, endpoints.PrettyPrintedJSON(user))
 }
