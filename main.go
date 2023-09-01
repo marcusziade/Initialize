@@ -38,6 +38,12 @@ func main() {
 		handleUserRequest(c, user, err)
 	})
 
+	r.GET("/github_user/:username/starred", func(c *gin.Context) {
+		username := c.Param("username")
+		starredRepos, err := endpoints.GetStarredRepos(username, token)
+		handleUserRequest(c, starredRepos, err)
+	})
+
 	if err := r.Run(":8080"); err != nil {
 		log.Fatalf("Could not run server: %s", err.Error())
 	}
