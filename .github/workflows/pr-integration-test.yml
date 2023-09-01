@@ -31,7 +31,3 @@ jobs:
     - name: Check PR title for imperative mood
       if: github.event_name == 'pull_request'
       run: go run .github/scripts/check-pr-title-imperative-mood.go "${{ github.event.pull_request.title }}"
-
-    - name: Check PR title for imperative mood
-      if: github.event_name == 'push'
-      run: go run .github/scripts/check-pr-title-imperative-mood.go "${{ github.event.pull_request.title }}"
