@@ -17,15 +17,16 @@ func main() {
 	}
 
 	r := gin.Default()
+	e := endpoints.NewEndpoints(&http.Client{})
 
 	r.GET("/github_user/:username", func(c *gin.Context) {
 		username := c.Param("username")
-		user, err := endpoints.GetUser(username, token)
+		user, err := e.GetUser(username, token)
 		handleRequest(c, user, err)
 	})
 
 	r.GET("/user", func(c *gin.Context) {
-		user, err := endpoints.GetAuthenticatedUser(token)
+		user, err := e.GetAuthenticatedUser(token)
 		handleRequest(c, user, err)
 	})
 
@@ -35,7 +36,7 @@ func main() {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		user, err := endpoints.UpdateAuthenticatedUser(token, updatedFields)
+		user, err := e.UpdateAuthenticatedUser(token, updatedFields)
 		handleRequest(c, user, err)
 	})
 
@@ -45,7 +46,7 @@ func main() {
 			pages = 5
 		}
 		username := c.Param("username")
-		starredRepos, err := endpoints.GetStarredRepos(username, token, pages)
+		starredRepos, err := e.GetStarredRepos(username, token, pages)
 		handleRequest(c, starredRepos, err)
 	})
 

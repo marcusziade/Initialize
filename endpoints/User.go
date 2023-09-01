@@ -59,13 +59,11 @@ type Plan struct {
 	Collaborators int    `json:"collaborators"`
 }
 
-var httpClient = &http.Client{}
-
 /*
 If the authenticated user is authenticated with an OAuth token with the user scope, then the response lists public and private profile information. If the authenticated user is authenticated through OAuth without the user scope, then the response lists only public profile information.
 https://docs.github.com/en/rest/users/users?apiVersion=2022-11-28#get-the-authenticated-user
 */
-func GetAuthenticatedUser(token string) (*GitHubUser, error) {
+func (e *Endpoints) GetAuthenticatedUser(token string) (*GitHubUser, error) {
 	req, err := http.NewRequest("GET", "https://api.github.com/user", nil)
 	if err != nil {
 		return nil, err
@@ -90,7 +88,7 @@ func GetAuthenticatedUser(token string) (*GitHubUser, error) {
 If your email is set to private and you send an email parameter as part of this request to update your profile, your privacy settings are still enforced: the email address will not be displayed on your public profile or via the API.
 https://docs.github.com/en/rest/users/users?apiVersion=2022-11-28#update-the-authenticated-user
 */
-func UpdateAuthenticatedUser(token string, updatedFields map[string]interface{}) (*GitHubUser, error) {
+func (e *Endpoints) UpdateAuthenticatedUser(token string, updatedFields map[string]interface{}) (*GitHubUser, error) {
 	req, err := http.NewRequest("PATCH", "https://api.github.com/user", nil)
 	if err != nil {
 		return nil, err
@@ -118,10 +116,10 @@ func UpdateAuthenticatedUser(token string, updatedFields map[string]interface{})
 }
 
 /*
-Provides publicly available information about someone with a GitHub account.
+Provides publicly available information about a GitHub account.
 https://docs.github.com/en/rest/users/users?apiVersion=2022-11-28#get-a-user
 */
-func GetUser(username string, token string) (*GitHubUser, error) {
+func (e *Endpoints) GetUser(username string, token string) (*GitHubUser, error) {
 	req, err := http.NewRequest("GET", fmt.Sprintf("https://api.github.com/users/%s", username), nil)
 	if err != nil {
 		return nil, err

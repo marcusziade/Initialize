@@ -75,50 +75,40 @@ type Repository struct {
 }
 
 // GetStarredRepos fetches the GitHub repositories starred by a given user.
-// The function takes the GitHub username, a personal access token for authentication,
-// and the number of pages to fetch from the GitHub API. It returns a concatenated list
-// of all the repositories the user has starred across the specified number of pages.
-//
 // Parameters:
 // - username: GitHub username as a string.
 // - token: GitHub personal access token as a string.
 // - pages: Number of pages to fetch from the API as an integer.
 //
 // Returns:
-// - []StarredRepo: A slice containing the repositories starred by the user.
+// - []Repository: A slice containing the repositories starred by the user.
 // - error: An error object if an error occurs, otherwise nil.
-func GetStarredRepos(username string, token string, pages int) ([]Repository, error) {
+func (e *Endpoints) GetStarredRepos(username string, token string, pages int) ([]Repository, error) {
 	var wg sync.WaitGroup
 	ch := make(chan []Repository, pages)
 
-	// Spawn a goroutine for each page to fetch the starred repositories.
 	for i := 1; i <= pages; i++ {
 		wg.Add(1)
 		go func(page int) {
 			defer wg.Done()
-
 			url := fmt.Sprintf("https://api.github.com/users/%s/starred?page=%d", username, page)
 			req, err := http.NewRequest("GET", url, nil)
 			if err != nil {
 				return
 			}
 			setHeaders(req, token)
-
-			resp, err := httpClient.Do(req)
+			resp, err := e.httpClient.Do(req)
 			if err != nil {
 				return
 			}
-
 			var starredRepos []Repository
 			if err := unmarshalBody(resp.Body, &starredRepos); err != nil {
 				return
 			}
-
 			ch <- starredRepos
 		}(i)
 	}
 
-	// Close the channel once all fetch operations are complete.
 	go func() {
 		wg.Wait()
 		close(ch)
