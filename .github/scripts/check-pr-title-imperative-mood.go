@@ -30,7 +30,7 @@ func main() {
 	tokens := doc.Tokens()
 
 	if len(tokens) > 0 && tokens[0].Tag != "VB" {
-		fmt.Println("The PR title description should be in the imperative mood (e.g., 'Add feature', 'Fix bug').")
+		fmt.Println("The PR title description should be in the imperative mood. Examples include: 'chore: Fix a bug', 'feat: Add a feature', 'chore: Update the docs'.")
 		os.Exit(1)
 	}
 }
