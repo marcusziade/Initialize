@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/marcusziade/github-api/endpoints"
@@ -20,12 +21,12 @@ func main() {
 	r.GET("/github_user/:username", func(c *gin.Context) {
 		username := c.Param("username")
 		user, err := endpoints.GetUser(username, token)
-		handleUserRequest(c, user, err)
+		handleRequest(c, user, err)
 	})
 
 	r.GET("/user", func(c *gin.Context) {
 		user, err := endpoints.GetAuthenticatedUser(token)
-		handleUserRequest(c, user, err)
+		handleRequest(c, user, err)
 	})
 
 	r.PATCH("/user", func(c *gin.Context) {
@@ -35,13 +36,17 @@ func main() {
 			return
 		}
 		user, err := endpoints.UpdateAuthenticatedUser(token, updatedFields)
-		handleUserRequest(c, user, err)
+		handleRequest(c, user, err)
 	})
 
-	r.GET("/github_user/:username/starred", func(c *gin.Context) {
+	r.GET("/github_starred/:username", func(c *gin.Context) {
+		pages, _ := strconv.Atoi(c.DefaultQuery("pages", "3"))
+		if pages > 5 {
+			pages = 5
+		}
 		username := c.Param("username")
-		starredRepos, err := endpoints.GetStarredRepos(username, token)
-		handleUserRequest(c, starredRepos, err)
+		starredRepos, err := endpoints.GetStarredRepos(username, token, pages)
+		handleRequest(c, starredRepos, err)
 	})
 
 	if err := r.Run(":8080"); err != nil {
@@ -49,7 +54,7 @@ func main() {
 	}
 }
 
-func handleUserRequest(c *gin.Context, user interface{}, err error) {
+func handleRequest(c *gin.Context, user interface{}, err error) {
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
