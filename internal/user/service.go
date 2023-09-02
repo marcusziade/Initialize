@@ -5,7 +5,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-// User is our model, which corresponds to the "users" database table.
+// Model, which corresponds to the "users" database table.
 type User struct {
 	gorm.Model
 	FirstName string `json:"firstname"`
@@ -13,7 +13,7 @@ type User struct {
 	Email     string `json:"email"`
 }
 
-// Service is the interface that provides user methods.
+// Interface that provides user methods.
 type Service interface {
 	Create(u *User) error
 	Get(id int) (*User, error)
@@ -22,7 +22,7 @@ type Service interface {
 	Update(u *User) error
 }
 
-// NewService creates a user service with necessary dependencies.
+// Creates a user service with necessary dependencies.
 func NewService(db *gorm.DB) Service {
 	return &service{
 		db: db,
@@ -33,12 +33,12 @@ type service struct {
 	db *gorm.DB
 }
 
-// Create creates a new user.
+// Creates a new user.
 func (s *service) Create(u *User) error {
 	return s.db.Create(u).Error
 }
 
-// Get gets a user by ID.
+// Gets a user by ID.
 func (s *service) Get(id int) (*User, error) {
 	var u User
 	if err := s.db.First(&u, id).Error; err != nil {
@@ -47,7 +47,7 @@ func (s *service) Get(id int) (*User, error) {
 	return &u, nil
 }
 
-// GetAll gets all users.
+// Gets all users.
 func (s *service) GetAll() ([]*User, error) {
 	var us []*User
 	if err := s.db.Find(&us).Error; err != nil {
@@ -56,7 +56,7 @@ func (s *service) GetAll() ([]*User, error) {
 	return us, nil
 }
 
-// Delete deletes a user.
+// Deletes a user.
 func (s *service) Delete(id int) error {
 	var u User
 	if err := s.db.First(&u, id).Error; err != nil {
@@ -68,7 +68,7 @@ func (s *service) Delete(id int) error {
 	return nil
 }
 
-// Update updates a user.
+// Updates a user.
 func (s *service) Update(u *User) error {
 	return s.db.Save(u).Error
 }

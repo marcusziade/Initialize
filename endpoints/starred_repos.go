@@ -1,3 +1,4 @@
+// Description: This file contains the functions that interact with the GitHub API to get ustarred repositories.
 package endpoints
 
 import (
