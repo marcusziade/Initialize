@@ -1,12 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
 
-	"github.com/gin-gonic/gin"
 	"github.com/marcusziade/github-api/endpoints"
 )
 
@@ -16,54 +16,48 @@ func main() {
 		log.Fatal("GitHub token must be set in environment variable GITHUB_TOKEN")
 	}
 
-	r := gin.Default()
 	e := endpoints.NewEndpoints(&http.Client{})
 
-	r.GET("/github_user/:username", func(c *gin.Context) {
-		username := c.Param("username")
+	http.HandleFunc("/github_user/", func(w http.ResponseWriter, r *http.Request) {
+		username := r.URL.Path[len("/github_user/"):]
 		user, err := e.GetUser(username, token)
-		handleRequest(c, user, err)
+		handleRequest(w, user, err)
 	})
 
-	r.GET("/user", func(c *gin.Context) {
+	http.HandleFunc("/user", func(w http.ResponseWriter, r *http.Request) {
 		user, err := e.GetAuthenticatedUser(token)
-		handleRequest(c, user, err)
+		handleRequest(w, user, err)
 	})
 
-	r.PATCH("/user", func(c *gin.Context) {
-		var updatedFields map[string]interface{}
-		if err := c.ShouldBindJSON(&updatedFields); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
+	http.HandleFunc("/github_starred/", func(w http.ResponseWriter, r *http.Request) {
+		pagesStr := r.URL.Query().Get("pages")
+		pages, err := strconv.Atoi(pagesStr)
+		if err != nil || pages <= 0 {
+			pages = 2
 		}
-		user, err := e.UpdateAuthenticatedUser(token, updatedFields)
-		handleRequest(c, user, err)
-	})
-
-	r.GET("/github_starred/:username", func(c *gin.Context) {
-		pages, _ := strconv.Atoi(c.DefaultQuery("pages", "3"))
 		if pages > 5 {
 			pages = 5
 		}
-		username := c.Param("username")
+		username := r.URL.Path[len("/github_starred/"):]
 		starredRepos, err := e.GetStarredRepos(username, token, pages)
-		handleRequest(c, starredRepos, err)
+		handleRequest(w, starredRepos, err)
 	})
 
-	if err := r.Run(":8080"); err != nil {
-		log.Fatalf("Could not run server: %s", err.Error())
-	}
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
-func handleRequest(c *gin.Context, user interface{}, err error) {
+func handleRequest(w http.ResponseWriter, data interface{}, err error) {
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	// Disabled during debugging.
-	// c.JSON(http.StatusOK, user)
 
-	// Pretty-printed JSON during debugging.
-	c.Header("Content-Type", "application/json")
-	c.String(http.StatusOK, endpoints.PrettyPrintedJSON(user))
+	prettyJSON, err := json.MarshalIndent(data, "", "  ")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(prettyJSON)
 }
