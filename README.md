@@ -28,12 +28,8 @@ Github-api
 
 ### Key Components
 
-- `Dockerfile`: Handles containerization of the application. Uses a multi-stage build.
-- `cmd/app/main.go`: Main entry point of the application.
-- `endpoints`: Houses all the API endpoints including user information and starred repositories.
-- `internal`: Contains the business logic for user-related operations.
-- `pkg/db`: Database-related logic resides here.
-- `web/static`: Static files for any web interface that may be a part of the project.
+- `Dockerfile`: Handles containerization of the application.
+- `endpoints`: Houses all the API endpoints.
 
 ## Building the Docker Image
 
