@@ -9,29 +9,21 @@ This is an application focused on interacting with the GitHub API. The applicati
 ```plaintext
 Github-api
 ├── Dockerfile
+├── README.md
 ├── api
-│   └── api_definitions
+│   └── api_definitions
 ├── cmd
-│   └── app
-│       └── main.go
+│   └── app
+│       └── main.go
 ├── endpoints
-│   ├── User.go
-│   ├── endpoints.go
-│   ├── starred_repos.go
-│   └── starred_repos_test.go
+│   ├── User.go
+│   ├── endpoints.go
+│   ├── starred_repos.go
+│   └── starred_repos_test.go
 ├── entrypoint.sh
 ├── go.mod
 ├── go.sum
-├── internal
-│   └── user
-│       ├── handler.go
-│       └── service.go
-├── main.go
-├── pkg
-│   └── db
-│       └── db.go
-└── web
-    └── static
+└── main.go
 ```
 
 ### Key Components
