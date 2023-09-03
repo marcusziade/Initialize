@@ -12,18 +12,18 @@ Github-api
 ├── README.md
 ├── api
 │   └── api_definitions
-├── cmd
-│   └── app
-│       └── main.go
 ├── endpoints
-│   ├── User.go
-│   ├── endpoints.go
-│   ├── starred_repos.go
-│   └── starred_repos_test.go
+│   └── github.go
 ├── entrypoint.sh
 ├── go.mod
 ├── go.sum
-└── main.go
+├── main.go
+├── models
+│   ├── owner.go
+│   ├── repository.go
+│   └── user.go
+└── utils
+    └── utilities.go
 ```
 
 ### Key Components
