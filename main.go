@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/marcusziade/github-api/endpoints"
 )
@@ -25,6 +26,7 @@ func main() {
 	http.HandleFunc("/github_user/", getUserHandler(e, token))
 	http.HandleFunc("/user", getAuthUserHandler(e, token))
 	http.HandleFunc("/github_starred/", getStarredHandler(e, token))
+	http.HandleFunc("/github_readme_images/", getReadmeImagesHandler(e, token))
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
@@ -79,4 +81,35 @@ func handleRequest(w http.ResponseWriter, data interface{}, err error) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(prettyJSON)
+}
+
+func getReadmeImagesHandler(e *endpoints.Endpoints, token string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		paths := strings.Split(r.URL.Path, "/")
+		if len(paths) < 4 {
+			http.Error(w, "Invalid URL format. It should be /github_readme_images/{owner}/{repo}", http.StatusBadRequest)
+			return
+		}
+		owner, repo := paths[2], paths[3]
+
+		imageURLs, err := e.GetReadmeImages(owner, repo, token)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if len(imageURLs) == 0 {
+			http.Error(w, "No images found in README", http.StatusNotFound)
+			return
+		}
+
+		jsonData, err := json.Marshal(imageURLs)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jsonData)
+	}
 }

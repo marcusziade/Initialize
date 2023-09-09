@@ -2,9 +2,11 @@ package endpoints
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"regexp"
 
 	"github.com/marcusziade/github-api/models"
 	"github.com/marcusziade/github-api/utils"
@@ -134,4 +136,42 @@ func (e *Endpoints) GetUser(username string, token string) (*models.GitHubUser, 
 	}
 
 	return &user, nil
+}
+
+func (e *Endpoints) GetReadmeImages(owner string, repo string, token string) ([]string, error) {
+	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/readme", owner, repo)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	utils.SetHeaders(req, token)
+	resp, err := e.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var readmeResponse models.ReadmeResponse
+	if err := utils.HandleResponse(resp, &readmeResponse); err != nil {
+		return nil, err
+	}
+
+	decodedContent, err := base64.StdEncoding.DecodeString(readmeResponse.Content)
+	if err != nil {
+		return nil, err
+	}
+
+	contentString := string(decodedContent)
+
+	re := regexp.MustCompile(`!\[.*?\]\((.*?)\)`)
+	matches := re.FindAllStringSubmatch(contentString, -1)
+
+	var imageURLs []string
+	for _, match := range matches {
+		if len(match) > 1 {
+			imageURLs = append(imageURLs, match[1])
+		}
+	}
+
+	return imageURLs, nil
 }
